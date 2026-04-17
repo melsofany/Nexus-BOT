@@ -55,7 +55,13 @@ async function startServer() {
     { name: 'USDT', address: "0x55d398326f99059fF775485246999027B3197955" },
     { name: 'CAKE', address: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82" },
     { name: 'BTCB', address: "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c" },
-    { name: 'ETH', address: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8" }
+    { name: 'ETH', address: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8" },
+    { name: 'FLOKI', address: "0xfb06a0dfc83664d4d3def429bbbe249ed1362f6b" },
+    { name: 'PEPE', address: "0x25d8039b039cc804245ce600e0fe361f364741cc" },
+    { name: 'BABYDOGE', address: "0xc748673057861a797275CD8A068AbB95A902e8de" },
+    { name: 'DOGE', address: "0xbA2aE424d960c26247Dd6c32edC70B295c744C43" },
+    { name: 'SHIB', address: "0x2859e4544C4bB03966803b044A93563Bd2D0DD4D" },
+    { name: 'SAFEMOON', address: "0x42981d035AF57553420288a397F1416030c52ec5" }
   ];
 
   let botStatus = "stopped";
@@ -134,7 +140,7 @@ async function startServer() {
       if (botStatus === "running" && wallet) {
         try { await scanForOpportunities(); } catch (e) { console.error("Scan error:", e.message); }
       }
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
@@ -156,7 +162,7 @@ async function startServer() {
     const amountIn = ethers.parseEther(tradeAmountBNB.toString());
     const activeProvider = providers.bsc;
 
-    for (const targetToken of TOKENS_BSC) {
+    await Promise.all(TOKENS_BSC.map(async (targetToken) => {
       try {
         const quotes = await Promise.all(
           Object.entries(DEX_ROUTERS).map(async ([name, address]) => {
@@ -169,7 +175,7 @@ async function startServer() {
         );
 
         const validQuotes = quotes.filter((q): q is { name: string, address: string, output: bigint } => q !== null);
-        if (validQuotes.length < 2) continue;
+        if (validQuotes.length < 2) return;
 
         validQuotes.sort((a, b) => b.output > a.output ? 1 : -1);
         const bestBuy = validQuotes[0];
@@ -186,7 +192,7 @@ async function startServer() {
         );
 
         const bestSell = exitQuotes.filter((q): q is { name: string, address: string, bnbBack: bigint } => q !== null).sort((a, b) => b.bnbBack > a.bnbBack ? 1 : -1)[0];
-        if (!bestSell) continue;
+        if (!bestSell) return;
 
         const feeData = await activeProvider.getFeeData();
         const gasLimit = 300000n;
@@ -234,7 +240,7 @@ async function startServer() {
           totalCount++;
         }
       } catch (err) {}
-    }
+    }));
   }
 
   botLoop();
