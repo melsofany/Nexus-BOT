@@ -11,7 +11,8 @@ import {
   Cpu,
   RefreshCw,
   AlertTriangle,
-  Zap
+  Zap,
+  BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -67,7 +68,7 @@ export default function App() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(fetchData, 3000); // Faster UI sync
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -95,6 +96,9 @@ export default function App() {
                 <Cpu className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold tracking-tight text-white">NEXUS <span className="text-blue-500">BOT</span></span>
+            </div>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+              <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Aggressive Mode V2</span>
             </div>
           </div>
           
@@ -138,7 +142,7 @@ export default function App() {
               </button>
               
               <div className="mt-6 p-4 bg-black/40 rounded-xl border border-white/5">
-                <div className="text-[10px] text-gray-500 uppercase font-bold mb-2">Engine Status</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold mb-2">Scanner Status</div>
                 <div className="text-xs text-blue-400 font-mono flex items-center gap-2">
                   <Zap className="w-3 h-3 animate-pulse" />
                   {botIdleReason}
@@ -179,8 +183,9 @@ export default function App() {
             <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 flex items-center gap-2">
-                  <History className="w-4 h-4" /> Live Market Scanner & Trades
+                  <BarChart3 className="w-4 h-4" /> Aggressive Market Scanner (Live)
                 </h2>
+                <div className="text-[10px] text-gray-500 font-mono">Scanning 15+ Assets across 10+ DEXs</div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
@@ -190,7 +195,8 @@ export default function App() {
                       <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">Network</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">Asset</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">Route</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">Profit (Est)</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">Spread %</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">Profit (Net)</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">Status</th>
                     </tr>
                   </thead>
@@ -211,10 +217,11 @@ export default function App() {
                           </td>
                           <td className="px-6 py-4 text-xs font-bold text-white">{trade.asset}</td>
                           <td className="px-6 py-4 text-[10px] font-mono text-gray-400">{trade.platforms}</td>
+                          <td className="px-6 py-4 text-xs font-bold text-blue-400">{trade.spread}</td>
                           <td className="px-6 py-4 text-xs font-bold text-green-400">{trade.profit}</td>
                           <td className="px-6 py-4">
-                            <span className="flex items-center gap-1.5 text-[10px] font-medium text-blue-400">
-                              <RefreshCw className="w-3 h-3 animate-spin-slow" />
+                            <span className={`flex items-center gap-1.5 text-[10px] font-medium ${trade.status.includes('PROFITABLE') ? 'text-green-400 animate-pulse' : 'text-gray-500'}`}>
+                              {trade.status.includes('PROFITABLE') ? <Zap className="w-3 h-3" /> : <RefreshCw className="w-3 h-3" />}
                               {trade.status}
                             </span>
                           </td>
@@ -223,8 +230,8 @@ export default function App() {
                     </AnimatePresence>
                     {trades.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic text-sm">
-                          No active trades or scan results yet. Start the sniper to begin hunting.
+                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500 italic text-sm">
+                          No active trades or scan results yet. Start the sniper to begin aggressive hunting.
                         </td>
                       </tr>
                     )}
